@@ -83,3 +83,58 @@ for func, name in zip(functions, function_names):
     print(f"Error medio absoluto Baricéntrico: {np.mean(error_bary):.6e}")
     print(f"Error medio absoluto Newton: {np.mean(error_newton):.6e}")
     print(f"Error medio absoluto Lagrange: {np.mean(error_lagrange):.6e}")
+
+
+
+
+from numpy.polynomial import Chebyshev
+# Generamos los nodos de Chebyshev en el intervalo [-1, 1]
+def x_chebyshev(n):
+    """Generate Chebyshev nodes in the interval [-1, 1]."""
+    k = np.arange(n)
+    return np.cos((2 * k + 1) * np.pi / (2 * n))
+
+# Generakemos nodos
+n1 = 11
+#n2 = 21
+nodes_11 = x_chebyshev(n1)
+
+# Transformamos los nodos al intervalo [a, b], por ejemplo, [-1, 1]
+a, b = -1, 1
+x_chebyshev_transformed_11 = 0.5 * (b - a) * (nodes_11 + 1) + a
+
+
+for func, name in zip(functions, function_names):
+    print(f"\nProcesando la función {name}")
+   
+    # Evaluamos la función en los nodos de Chebyshev
+    y_chebyshev_11 = func(x_chebyshev_transformed_11)
+    
+    # Creamos el polinomio interpolador usando los nodos Chebyshev
+    start_time=time()
+    chebyshev_polynomial_11 = Chebyshev.fit(x_chebyshev_transformed_11, y_chebyshev_11, deg=n-1)
+    chebyshev_time=time()-start_time
+    #chebyshev_polynomial_21 = Chebyshev.fit(x_chebyshev_transformed_21, y_chebyshev_21, deg=n-1)
+    
+    # Crear una serie de puntos para graficar el polinomio
+    x_plot = np.linspace(a, b, 400)
+    y_plot = func(x_plot)
+    
+    # Calcular errores absolutos
+    
+    error_bary = np.abs(y_plot - y_bary)
+    
+    # Evaluamos el polinomio en los puntos de plot
+    y_approx_11 = chebyshev_polynomial_11(x_plot)
+    
+    # Graficamos la función original y la aproximación polinómica
+    plt.figure(figsize=(10, 6))
+    plt.plot(x_plot, y_plot, label='f(x) = 1/(1+25*x^2)', color='blue')
+    plt.plot(x_plot, y_approx_11, label='Aproximación con Polinomio de Chebyshev n=11', color='red', linestyle='--')
+    plt.scatter(x_chebyshev_transformed_11, y_chebyshev_11, color='black', zorder=5, label='Nodos de Chebyshev n=11')
+    plt.title('Aproximación de Chebyshev')
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('f(x)')
+    plt.grid()
+    plt.show()
